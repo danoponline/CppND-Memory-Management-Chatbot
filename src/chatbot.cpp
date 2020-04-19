@@ -30,7 +30,7 @@ ChatBot::ChatBot(std::string filename)
     _image = new wxBitmap(filename, wxBITMAP_TYPE_PNG);
 }
 
-ChatBot::~ChatBot()
+ChatBot::~ChatBot() // 1 : destructor
 {
     std::cout << "ChatBot Destructor" << std::endl;
 
@@ -44,7 +44,88 @@ ChatBot::~ChatBot()
 
 //// STUDENT CODE
 ////
+ChatBot::ChatBot(const ChatBot &source) // 2 : copy constructor
+{
+    std::cout << "Chatbot COPY Constructor is called" << std::endl;
+    //Transfer source data handles
+    this->_currentNode = source._currentNode;
+    this->_rootNode = source._rootNode;
+    this->_chatLogic = source._chatLogic;
 
+    //Generate deep copy
+    this->_image = new wxBitmap;
+    *(this->_image) = *(source._image);
+}
+
+ChatBot::ChatBot(ChatBot &&source) // 3 : move constructor
+{
+    std::cout << "Chatbot MOVE Constructor is called" << std::endl;
+    //Transfer source data handles
+    this->_currentNode = source._currentNode;
+    this->_rootNode = source._rootNode;
+    this->_chatLogic = source._chatLogic;
+    this->_image = source._image;
+    
+    //Invalidate source data handles
+    source._image = NULL;
+    source._chatLogic = nullptr;
+    source._rootNode = nullptr;
+    source._currentNode = nullptr;
+}
+
+ChatBot &ChatBot::operator=(const ChatBot &source) // 4 : copy assignment operator
+{
+    std::cout << "Chatbot COPY Assignment Operator is called" << std::endl;
+    
+    //Check if the source is copied to itself
+    if(this==&source) return *this;
+    
+    //Transfer source data handles
+    this->_currentNode = source._currentNode;
+    this->_rootNode = source._rootNode;
+    this->_chatLogic = source._chatLogic;
+
+    //Delete old image if applicable
+    if(this->_image != NULL) // Attention: wxWidgets used NULL and not nullptr
+    {
+        delete this->_image;
+    }
+    
+    //Generate deepcopy
+    this->_image = new wxBitmap;
+    *(this->_image) = *(source._image);
+
+    return *this;
+}
+
+ChatBot &ChatBot::operator=(ChatBot &&source) // 5 : move assignment operator
+{
+    std::cout << "Chatbot MOVE Assignment Operator is called" << std::endl;
+    //Check if the source is copied to itself
+    if(this==&source) return *this;
+    
+    //Transfer source data handles
+    this->_currentNode = source._currentNode;
+    this->_rootNode = source._rootNode;
+    this->_chatLogic = source._chatLogic;
+    
+    //Delete old image if applicable
+    if(this->_image != NULL) // Attention: wxWidgets used NULL and not nullptr
+    {
+        delete this->_image;
+    }
+    
+    //Transfer image data handle
+    this->_image = source._image;
+
+    //Invalidate source data handles
+    source._image = NULL;
+    source._chatLogic = nullptr;
+    source._rootNode = nullptr;
+    source._currentNode = nullptr;
+    
+    return *this;
+}
 ////
 //// EOF STUDENT CODE
 
@@ -86,14 +167,15 @@ void ChatBot::SetCurrentNode(GraphNode *node)
 {
     // update pointer to current node
     _currentNode = node;
-
+    
     // select a random node answer (if several answers should exist)
     std::vector<std::string> answers = _currentNode->GetAnswers();
     std::mt19937 generator(int(std::time(0)));
     std::uniform_int_distribution<int> dis(0, answers.size() - 1);
     std::string answer = answers.at(dis(generator));
-
+    
     // send selected node answer to user
+    _chatLogic->SetChatbotHandle(this);
     _chatLogic->SendMessageToUser(answer);
 }
 

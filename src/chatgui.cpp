@@ -116,16 +116,14 @@ ChatBotPanelDialog::ChatBotPanelDialog(wxWindow *parent, wxWindowID id)
 
     //// STUDENT CODE
     ////
-
     // create chat logic instance
-    _chatLogic = new ChatLogic(); 
+     _chatLogic = std::make_unique<ChatLogic>(); 
 
     // pass pointer to chatbot dialog so answers can be displayed in GUI
     _chatLogic->SetPanelDialogHandle(this);
 
     // load answer graph from file
     _chatLogic->LoadAnswerGraphFromFile(dataPath + "src/answergraph.txt");
-
     ////
     //// EOF STUDENT CODE
 }
@@ -134,8 +132,8 @@ ChatBotPanelDialog::~ChatBotPanelDialog()
 {
     //// STUDENT CODE
     ////
-
-    delete _chatLogic;
+    //No longer need to delete _chatLogic because we use unique_ptr
+    //delete _chatLogic;
 
     ////
     //// EOF STUDENT CODE
@@ -147,12 +145,12 @@ void ChatBotPanelDialog::AddDialogItem(wxString text, bool isFromUser)
     ChatBotPanelDialogItem *item = new ChatBotPanelDialogItem(this, text, isFromUser);
     _dialogSizer->Add(item, 0, wxALL | (isFromUser == true ? wxALIGN_LEFT : wxALIGN_RIGHT), 8);
     _dialogSizer->Layout();
-
+    
     // make scrollbar show up
     this->FitInside(); // ask the sizer about the needed size
     this->SetScrollRate(5, 5);
     this->Layout();
-
+    
     // scroll to bottom to show newest element
     int dx, dy;
     this->GetScrollPixelsPerUnit(&dx, &dy);
